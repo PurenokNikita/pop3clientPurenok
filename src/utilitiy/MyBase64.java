@@ -1,17 +1,12 @@
 package utilitiy;
 
 import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 public class MyBase64 {
     public MyBase64() {
     }
 
-    public static String getBASE64(String s) {
-        return s == null ? null : (new BASE64Encoder()).encode(s.getBytes());
-    }
-
-    public static String getFromBASE64(String s) {
+    public static String getFromBASE64(String s, String c) {
         if (s == null) {
             return null;
         } else {
@@ -19,7 +14,7 @@ public class MyBase64 {
 
             try {
                 byte[] b = decoder.decodeBuffer(s);
-                return new String(b);
+                return new String(b, c);
             } catch (Exception var3) {
                 return null;
             }

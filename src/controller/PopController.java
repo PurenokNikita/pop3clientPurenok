@@ -2,14 +2,15 @@ package controller;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Vector;
+import java.util.ArrayList;
+
 import view.MainFrame;
 
-import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 public class PopController {
     final int POP_PORT = 995;
+    public static final int SOCKET_READ_TIMEOUT = 15*1000;
     String pop_server = "";
     String my_email_addr = "";
     String my_email_pass = "";
@@ -26,7 +27,7 @@ public class PopController {
     }
 
     public int getMailCount() {
-        Vector<String> lines = this.getLines("LIST");
+        ArrayList<String> lines = this.getLines("LIST");
         System.out.println((String)lines.get(0));
         return lines.size() != 0 && !((String)lines.get(0)).startsWith("-ERR") ? lines.size() - 2 : -1;
     }
@@ -36,12 +37,12 @@ public class PopController {
         return line.length() != 0 && line.startsWith("+OK");
     }
 
-    public Vector<String> getItemString(String number) {
+    public ArrayList<String> getItemString(String number) {
         return this.getLines("RETR " + number);
     }
 
-    private Vector<String> getLines(String command) {
-        Vector lines = new Vector();
+    private ArrayList<String> getLines(String command) {
+        ArrayList lines = new ArrayList();
 
         try {
             boolean cont = true;
@@ -50,7 +51,7 @@ public class PopController {
             this.pop_out.flush();
             System.out.println("send-->" + command);
             String res = this.pop_in.readLine();
-            lines.addElement(res);
+            lines.add(res);
             System.out.println("receive-->" + res);
             if (!"+OK".equals(res.substring(0, 3))) {
                 return lines;
@@ -58,7 +59,7 @@ public class PopController {
 
             while(cont) {
                 buf = this.pop_in.readLine();
-                lines.addElement(buf);
+                lines.add(buf);
                 System.out.println("receive-->" + buf);
                 if (".".equals(buf)) {
                     cont = false;
@@ -91,6 +92,7 @@ public class PopController {
         try {
             SSLSocketFactory sf = (SSLSocketFactory) SSLSocketFactory.getDefault();
             this.pop = sf.createSocket(this.pop_server, 995);
+            this.pop.setSoTimeout(SOCKET_READ_TIMEOUT);
             OutputStream out = this.pop.getOutputStream();
             out.write("\nConnection established.\n\n".getBytes());
             out.flush();

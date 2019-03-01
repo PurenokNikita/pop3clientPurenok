@@ -11,7 +11,9 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
+import javax.mail.MessagingException;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -44,7 +46,7 @@ public class MainFrame extends JFrame {
     private String pass;
     private String pop_addr;
     private int curMailIndex;
-    private Vector<Mail> mails = new Vector();
+    private ArrayList <Mail> mails = new ArrayList<>();
     private PopController popController;
     private LoginDialog loginDialog;
     private ActionListener listener = new ActionListener() {
@@ -53,7 +55,11 @@ public class MainFrame extends JFrame {
             switch((var2 = e.getActionCommand()).hashCode()) {
                 case -1335458389:
                     if (var2.equals("delete")) {
-                        MainFrame.this.doDelete();
+                        try {
+                            MainFrame.this.doDelete();
+                        } catch (MessagingException e1) {
+                            e1.printStackTrace();
+                        }
                     }
                     break;
 
@@ -128,7 +134,11 @@ public class MainFrame extends JFrame {
         this.setTableVisible();
         (new Thread(new Runnable() {
             public void run() {
-                MainFrame.this.initPop();
+                try {
+                    MainFrame.this.initPop();
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
             }
         })).start();
     }
@@ -150,7 +160,7 @@ public class MainFrame extends JFrame {
         this.scrollPane_table.setVisible(true);
     }
 
-    private void initPop() {
+    private void initPop() throws MessagingException {
         this.popController = new PopController(this.pop_addr, this.addr, this.pass, this);
         int count = this.popController.getMailCount();
         if (count == -1) {
@@ -161,9 +171,9 @@ public class MainFrame extends JFrame {
             this.setVisible(true);
         }
 
-        this.mails = new Vector();
+        this.mails = new ArrayList<>();
 
-        for(int i =1; i < 2; ++i) {
+        for(int i =1; i < count; ++i) {
             Mail mail = new Mail(this.popController.getItemString(String.valueOf(i)));
             this.mails.add(mail);
         }
@@ -248,7 +258,7 @@ public class MainFrame extends JFrame {
 
 
 
-    protected void doDelete() {
+    protected void doDelete() throws MessagingException {
         if (this.popController.deleteItem(String.valueOf(this.curMailIndex))) {
             this.showMyDialog("Удалено！");
             this.setTableVisible();
